@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>three.js webgl - 3MF</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<link type="text/css" rel="stylesheet" href="../main.css">
+	<style>
+		body {
+			background-color: #333;
+		}
+	</style>
+</head>
+<body>
+<div id="info">
+	<a href="https://threejs.org" target="_blank" rel="noopener">three.js</a>
+	<a href="http://3mf.io" target="_blank" rel="noopener">3MF File format</a>
+	<div>3MF loader test by <a href="https://github.com/technohippy" target="_blank" rel="noopener">technohippy</a>
+	</div>
+	<div>Files from <a href="https://github.com/3MFConsortium/3mf-samples" target="_blank"
+					   rel="noopener">3mf-samples</a></div>
+</div>
+
+<script type="importmap">
+	{
+		"imports": {
+			"three": "../../build/three.module.js",
+			"three/addons/": "../jsm/"
+		}
+	}
+</script>
+
+<script type="module">
+
+	import * as THREE from 'three';
+	import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+	let camera, scene, renderer, object, controls;
+
+
+	init();
+
+	function init() {
+
+		renderer = new THREE.WebGLRenderer( { antialias: true } );
+		renderer.setPixelRatio( window.devicePixelRatio * 0.5 );
+		renderer.setSize( window.innerWidth, window.innerHeight );
+		document.body.appendChild( renderer.domElement );
+
+		scene = new THREE.Scene();
+		scene.background = new THREE.Color( 0x333333 );
+
+		const frustumSize = 2000;
+		const aspect = window.innerWidth / window.innerHeight;
+
+
+		camera = new THREE.OrthographicCamera( frustumSize * aspect / - 2, frustumSize * aspect / 2, frustumSize / 2, frustumSize / - 2, 0, 5000 );
+		//camera = new THREE.PerspectiveCamera( 35, window.innerWidth / window.innerHeight, 1, 2000 );
+
+		camera.position.set( 0, 0, 2000 );
+		scene.add( camera );
+
+		controls = new OrbitControls( camera, renderer.domElement );
+		controls.addEventListener( 'change', render );
+		controls.minDistance = 50;
+		controls.maxDistance = 400;
+		controls.enablePan = false;
+		controls.update();
+
+		scene.add( new THREE.AmbientLight( 0xffffff, 0.4 ) );
+
+		const light = new THREE.DirectionalLight( 0xffffff, 0.5 );
+		light.position.set( - 1, - 2.5, 1 );
+		scene.add( light );
+
+
+		const ground = new THREE.Mesh( new THREE.PlaneGeometry( 5000, 5000 ), new THREE.MeshPhongMaterial( { color: 0xcbcbcb } ) );
+
+		ground.position.z = - 25;
+		ground.receiveShadow = true;
+		ground.sideDouble = true;
+		scene.add( ground );
+
+		const geometry = new THREE.BoxGeometry( 50, 50, 50 );
+		const material = new THREE.MeshPhongMaterial( { color: 0x00ff00 } );
+		let cube = new THREE.Mesh( geometry, material );
+		cube.castShadow = true;
+		cube.receiveShadow = true;
+		cube.name = 'kocka';
+		scene.add( cube );
+
+
+		document.addEventListener( 'keydown', keydown );
+
+
+		window.addEventListener( 'resize', onWindowResize );
+		render();
+	}
+
+
+	function keydown() {
+		if (event.key === 'w' || event.key === 'ArrowUp') {
+			if (scene.getObjectByName( 'kocka' ).position.y >= 600) {
+				return;
+			}
+			scene.getObjectByName( 'kocka' ).position.y += 50;
+			console.log( 'fel' );
+		} else if (event.key === 'a' || event.key === 'ArrowLeft') {
+			scene.getObjectByName( 'kocka' ).position.x -= 50;
+			console.log( 'balra' );
+		} else if (event.key === 's' || event.key === 'ArrowDown') {
+			scene.getObjectByName( 'kocka' ).position.y -= 50;
+			console.log( 'le' );
+		} else if (event.key === 'd' || event.key === 'ArrowRight') {
+			scene.getObjectByName( 'kocka' ).position.x += 50;
+			console.log( 'jobbra' );
+		}
+		render();
+	}
+
+
+	function onWindowResize() {
+		camera.aspect = window.innerWidth / window.innerHeight;
+		camera.updateProjectionMatrix();
+		renderer.setSize( window.innerWidth, window.innerHeight );
+		render();
+
+	}
+
+	function render() {
+		renderer.render( scene, camera );
+	}
+
+</script>
+</body>
+</html>
