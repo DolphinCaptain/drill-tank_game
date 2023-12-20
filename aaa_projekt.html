@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<title>three.js webgl - 3MF</title>
+	<title>Tank</title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<link type="text/css" rel="stylesheet" href="../main.css">
@@ -12,14 +12,7 @@
 	</style>
 </head>
 <body>
-<div id="info">
-	<a href="https://threejs.org" target="_blank" rel="noopener">three.js</a>
-	<a href="http://3mf.io" target="_blank" rel="noopener">3MF File format</a>
-	<div>3MF loader test by <a href="https://github.com/technohippy" target="_blank" rel="noopener">technohippy</a>
-	</div>
-	<div>Files from <a href="https://github.com/3MFConsortium/3mf-samples" target="_blank"
-					   rel="noopener">3mf-samples</a></div>
-</div>
+
 
 <script type="importmap">
 	{
@@ -34,9 +27,11 @@
 
 	import * as THREE from 'three';
 	import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+	import { MapControls } from '../jsm/controls/MapControls.js';
 
 	let camera, scene, renderer, object, controls;
-
+	const frustumSize = 800;
+	const aspect = window.innerWidth / window.innerHeight;
 
 	init();
 
@@ -50,21 +45,20 @@
 		scene = new THREE.Scene();
 		scene.background = new THREE.Color( 0x333333 );
 
-		const frustumSize = 2000;
-		const aspect = window.innerWidth / window.innerHeight;
+		//camera = new THREE.OrthographicCamera( frustumSize * aspect / - 2, frustumSize * aspect / 2, frustumSize / 2, frustumSize / - 2, 0, 3000 );
+		camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 2000 );
+		camera.position.setY(300);
+		camera.position.setZ(800);
 
-
-		camera = new THREE.OrthographicCamera( frustumSize * aspect / - 2, frustumSize * aspect / 2, frustumSize / 2, frustumSize / - 2, 0, 5000 );
-		//camera = new THREE.PerspectiveCamera( 35, window.innerWidth / window.innerHeight, 1, 2000 );
-
-		camera.position.set( 0, 0, 2000 );
 		scene.add( camera );
+
+
 
 		controls = new OrbitControls( camera, renderer.domElement );
 		controls.addEventListener( 'change', render );
 		controls.minDistance = 50;
-		controls.maxDistance = 400;
-		controls.enablePan = false;
+		controls.maxDistance = 1500;
+		controls.enablePan = true;
 		controls.update();
 
 		scene.add( new THREE.AmbientLight( 0xffffff, 0.4 ) );
@@ -74,20 +68,25 @@
 		scene.add( light );
 
 
-		const ground = new THREE.Mesh( new THREE.PlaneGeometry( 5000, 5000 ), new THREE.MeshPhongMaterial( { color: 0xcbcbcb } ) );
+		const ground = new THREE.Mesh( new THREE.PlaneGeometry( 2000, 2000 ), new THREE.MeshPhongMaterial( {
+			color: 0xcbcbcb,
+			side: THREE.DoubleSide
+		} ) );
 
 		ground.position.z = - 25;
 		ground.receiveShadow = true;
 		ground.sideDouble = true;
 		scene.add( ground );
 
-		const geometry = new THREE.BoxGeometry( 50, 50, 50 );
-		const material = new THREE.MeshPhongMaterial( { color: 0x00ff00 } );
+		const geometry = new THREE.BoxGeometry( 10, 10, 10 );
+		const material = new THREE.MeshPhongMaterial( { color: 0xff0000 } );
 		let cube = new THREE.Mesh( geometry, material );
+		cube.position.y = 300;
 		cube.castShadow = true;
 		cube.receiveShadow = true;
 		cube.name = 'kocka';
 		scene.add( cube );
+		camera.lookAt(scene.getObjectByName( 'kocka' ).position)
 
 
 		document.addEventListener( 'keydown', keydown );
@@ -99,32 +98,36 @@
 
 
 	function keydown() {
+
 		if (event.key === 'w' || event.key === 'ArrowUp') {
-			if (scene.getObjectByName( 'kocka' ).position.y >= 600) {
+			if (scene.getObjectByName( 'kocka' ).position.y >= 300) {
 				return;
 			}
-			scene.getObjectByName( 'kocka' ).position.y += 50;
-			console.log( 'fel' );
+
+			scene.getObjectByName( 'kocka' ).position.y += 10;
 		} else if (event.key === 'a' || event.key === 'ArrowLeft') {
-			scene.getObjectByName( 'kocka' ).position.x -= 50;
-			console.log( 'balra' );
+			scene.getObjectByName( 'kocka' ).position.x -= 10;
+
 		} else if (event.key === 's' || event.key === 'ArrowDown') {
-			scene.getObjectByName( 'kocka' ).position.y -= 50;
-			console.log( 'le' );
+
+			scene.getObjectByName( 'kocka' ).position.y -= 10;
 		} else if (event.key === 'd' || event.key === 'ArrowRight') {
-			scene.getObjectByName( 'kocka' ).position.x += 50;
-			console.log( 'jobbra' );
+
+			scene.getObjectByName( 'kocka' ).position.x += 10;
 		}
 		render();
 	}
 
 
 	function onWindowResize() {
-		camera.aspect = window.innerWidth / window.innerHeight;
+		let aspect = window.innerWidth / window.innerHeight;
+		camera.left = frustumSize * aspect / - 2;
+		camera.right = frustumSize * aspect / 2;
+		camera.top = frustumSize / 2;
+		camera.bottom = - frustumSize / 2;
 		camera.updateProjectionMatrix();
 		renderer.setSize( window.innerWidth, window.innerHeight );
 		render();
-
 	}
 
 	function render() {
